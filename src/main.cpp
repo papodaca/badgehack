@@ -8,6 +8,10 @@
 /*
   Define these functions ahead of time
 */
+uint32_t randomColor();
+uint8_t randomTimes();
+void colorWipeSequence(uint8_t times);
+void theaterChaseSequence(uint8_t times);
 void colorWipe(uint32_t c, uint8_t wait);
 void rainbow(uint8_t wait);
 void rainbowCycle(uint8_t wait);
@@ -23,7 +27,30 @@ uint32_t Wheel(byte WheelPos);
 //   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(31, PIN, NEO_GRB + NEO_KHZ800);
+
+uint8_t maxx = 255;
+uint8_t half = 255/2;
+uint8_t zero = 0;
+
+uint32_t colors[16] = {
+  strip.Color(maxx, zero, zero),
+  strip.Color(zero, maxx, zero),
+  strip.Color(zero, zero, maxx),
+  strip.Color(maxx, maxx, zero),
+  strip.Color(maxx, zero, maxx),
+  strip.Color(zero, maxx, maxx),
+  strip.Color(maxx, zero, half),
+  strip.Color(maxx, half, zero),
+  strip.Color(half, maxx, zero),
+  strip.Color(zero, maxx, half),
+  strip.Color(half, zero, maxx),
+  strip.Color(zero, half, maxx),
+  strip.Color(maxx, maxx, half),
+  strip.Color(maxx, half, maxx),
+  strip.Color(half, maxx, maxx),
+  strip.Color(maxx, maxx, maxx)
+};
 
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
@@ -31,31 +58,61 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, PIN, NEO_GRB + NEO_KHZ800);
 // on a live circuit...if you must, connect GND first.
 
 void setup() {
-  // This is for Trinket 5V 16MHz, you can remove these three lines if you are not using a Trinket
-  #if defined (__AVR_ATtiny85__)
-    if (F_CPU == 16000000) clock_prescale_set(clock_div_1);
-  #endif
-  // End of trinket special code
-
 
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
 }
 
 void loop() {
-  // Some example procedures showing how to display to the pixels:
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  colorWipe(strip.Color(0, 255, 0), 50); // Green
-  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-//colorWipe(strip.Color(0, 0, 0, 255), 50); // White RGBW
-  // Send a theater pixel chase in...
-  theaterChase(strip.Color(127, 127, 127), 50); // White
-  theaterChase(strip.Color(127, 0, 0), 50); // Red
-  theaterChase(strip.Color(0, 0, 127), 50); // Blue
+  switch(random(0, 11)) {
+    case 0:
+      delay(random(15, 120) * 1000);
+      break;
+    case 1:
+    case 2:
+      theaterChaseSequence(randomTimes());
+      break;
+    case 3:
+      colorWipe(randomColor(), 50);
+      break;
+    case 4:
+      theaterChase(randomColor(), 50);
+      break;
+    case 5:
+       rainbowCycle(20);
+      break;
+    case 6:
+      theaterChaseRainbow(50);
+      break;
+    case 7:
+    case 8:
+      rainbow(20);
+      break;
+    case 9:
+    case 10:
+      colorWipeSequence(randomTimes());
+      break;
+  }
+}
 
-  rainbow(20);
-  rainbowCycle(20);
-  theaterChaseRainbow(50);
+uint8_t randomTimes() {
+  return random(5, 25);
+}
+
+uint32_t randomColor() {
+  return colors[random(16)];
+}
+
+void colorWipeSequence(uint8_t times) {
+  for(uint8_t ii=times;ii>0;ii--) {
+    colorWipe(randomColor(), 50);
+  }
+}
+
+void theaterChaseSequence(uint8_t times) {
+  for(uint8_t ii=times;ii>0;ii--) {
+    theaterChase(randomColor(), 50);
+  }
 }
 
 // Fill the dots one after the other with a color
