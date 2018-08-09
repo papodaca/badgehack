@@ -4,18 +4,14 @@
   #include <avr/power.h>
 #endif
 
-#define LED_B 2
-#define LED_Z 3
-#define LED_K 4
-#define LED_H 5
-#define LED_S 6
-#define LED_SAO1 7
-#define LED_SAO2 8
-#define RGB_PIN 9
+#define SW_SAO1 7
+#define SW_SAO2 8
+#define RGB_PIN 6
 
 /*
   Define these functions ahead of time
 */
+void maybeTurnOnSao();
 uint32_t randomColor();
 uint8_t randomTimes();
 void pixelsOff();
@@ -27,19 +23,6 @@ void rainbowCycle(uint8_t wait);
 void theaterChase(uint32_t c, uint8_t wait);
 void theaterChaseRainbow(uint8_t wait);
 uint32_t Wheel(byte WheelPos);
-
-void sequence(void);
-void sequence_reverse(void);
-void sequence_flash_after(void);
-void sequence_reverse_flash_after(void);
-void flash(uint8_t pin);
-void flash_all(void);
-void flash_times(uint8_t times);
-void flash_sequence_times(uint8_t times);
-void flash_sequence(void);
-void flash_hold_sequence(void);
-void flash_all_three(void);
-void off(void);
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
@@ -74,141 +57,15 @@ uint32_t colors[16] = {
   strip.Color(maxx, maxx, maxx)
 };
 
-void sequence(void) {
-  digitalWrite(LED_B, HIGH);
-  delay(250);
-  digitalWrite(LED_Z, HIGH);
-  delay(250);
-  digitalWrite(LED_K, HIGH);
-  delay(250);
-  digitalWrite(LED_H, HIGH);
-  delay(250);
-  digitalWrite(LED_S, HIGH);
-  delay(250);
-  digitalWrite(LED_SAO1, HIGH);
-  digitalWrite(LED_SAO2, HIGH);
-  delay(250);
-  off();
-}
-
-void sequence_reverse(void) {
-  digitalWrite(LED_S, HIGH);
-  delay(250);
-  digitalWrite(LED_H, HIGH);
-  delay(250);
-  digitalWrite(LED_K, HIGH);
-  delay(250);
-  digitalWrite(LED_Z, HIGH);
-  delay(250);
-  digitalWrite(LED_B, HIGH);
-  delay(250);
-  digitalWrite(LED_SAO1, HIGH);
-  digitalWrite(LED_SAO2, HIGH);
-  delay(250);
-  off();
-}
-
-void sequence_flash_after(void) {
-  sequence();
-  delay(250);
-  flash_all();
-  delay(250);
-  flash_all();
-}
-
-void sequence_reverse_flash_after(void) {
-  sequence_reverse();
-  delay(250);
-  flash_all();
-  delay(250);
-  flash_all();
-}
-
-void flash_all_three(void) {
-  flash_times(3);
-}
-
-void flash_hold_sequence(void) {
-  flash(LED_B);
-  delay(250);
-  flash(LED_Z);
-  delay(250);
-  flash(LED_K);
-  delay(250);
-  flash(LED_H);
-  delay(250);
-  flash(LED_S);
-  delay(250);
-  flash(LED_SAO1);
-  delay(250);
-  flash(LED_SAO2);
-  delay(250);
-  off();
-}
-
-void flash_sequence(void) {
-  flash(LED_B);
-  flash(LED_Z);
-  flash(LED_K);
-  flash(LED_H);
-  flash(LED_S);
-  flash(LED_SAO1);
-  flash(LED_SAO2);
-}
-
-void flash_sequence_times(uint8_t times) {
-  for(uint8_t ii=times;ii>=0;ii--) {
-    flash_sequence();
-  }
-}
-
-void flash_times(uint8_t times) {
-  for(uint8_t ii=times;ii>=0;ii--) {
-    flash_all();
-    delay(100);
-  }
-}
-
-void flash(uint8_t pin) {
-  digitalWrite(pin, HIGH);
-  delay(250);
-  digitalWrite(pin, LOW);
-}
-
-void flash_all(void) {
-  digitalWrite(LED_S, HIGH);
-  digitalWrite(LED_H, HIGH);
-  digitalWrite(LED_K, HIGH);
-  digitalWrite(LED_Z, HIGH);
-  digitalWrite(LED_B, HIGH);
-  digitalWrite(LED_SAO1, HIGH);
-  digitalWrite(LED_SAO2, HIGH);
-  delay(250);
-  digitalWrite(LED_S, LOW);
-  digitalWrite(LED_H, LOW);
-  digitalWrite(LED_K, LOW);
-  digitalWrite(LED_Z, LOW);
-  digitalWrite(LED_B, LOW);
-  digitalWrite(LED_SAO1, LOW);
-  digitalWrite(LED_SAO2, LOW);
-}
-
-void off(void) {
-  digitalWrite(LED_B, LOW);
-  digitalWrite(LED_Z, LOW);
-  digitalWrite(LED_K, LOW);
-  digitalWrite(LED_H, LOW);
-  digitalWrite(LED_S, LOW);
-  digitalWrite(LED_SAO1, LOW);
-  digitalWrite(LED_SAO2, LOW);
-}
-
 // IMPORTANT: To reduce NeoPixel burnout risk, add 1000 uF capacitor across
 // pixel power leads, add 300 - 500 Ohm resistor on first pixel's data input
 // and minimize distance between Arduino and first pixel.  Avoid connecting
 // on a live circuit...if you must, connect GND first.
 
 void setup() {
+
+  pinMode(SW_SAO1, OUTPUT);
+  pinMode(SW_SAO2, OUTPUT);
 
   strip.begin();
   strip.show(); // Initialize all pixels to 'off'
@@ -229,62 +86,52 @@ void flash_all_three(void);
 */
 
 void loop() {
-  switch(random(0, 16)) {
+  switch(random(0, 9)) {
     case 0:
     case 1:
       delay(random(15, 120) * 1000);
       break;
     case 2:
+      maybeTurnOnSao();
       theaterChaseSequence(randomTimes());
       break;
     case 3:
+      maybeTurnOnSao();
       colorWipe(randomColor(), 50);
       break;
     case 4:
+      maybeTurnOnSao();
       theaterChase(randomColor(), 50);
       break;
     case 5:
-       rainbowCycle(20);
+      maybeTurnOnSao();
+      rainbowCycle(20);
       break;
     case 6:
+      maybeTurnOnSao();
       theaterChaseRainbow(50);
       break;
     case 7:
+      maybeTurnOnSao();
       rainbow(20);
       break;
     case 8:
+      maybeTurnOnSao();
       colorWipeSequence(randomTimes());
       break;
-    case 9:
-      sequence();
-      break;
-    case 10:
-      sequence_reverse();
-      break;
-    case 11:
-      sequence_flash_after();
-      break;
-    case 12:
-      sequence_reverse_flash_after();
-      break;
-    case 13:
-      flash_sequence();
-      break;
-    case 14:
-      flash_hold_sequence();
-      break;
-    case 15:
-      flash_all_three();
-      break;
-    case 16:
-      flash_sequence_times(randomTimes());
-      break;
-    case 17:
-      flash_times(randomTimes());
-      break;
   }
+  digitalWrite(SW_SAO1, LOW);
+  digitalWrite(SW_SAO2, LOW);
   pixelsOff();
-  off();
+}
+
+void maybeTurnOnSao() {
+  if(random(0,3) == 1) {
+    digitalWrite(SW_SAO2, HIGH);
+  }
+  if(random(0,3) == 1) {
+    digitalWrite(SW_SAO1, HIGH);
+  }
 }
 
 uint8_t randomTimes() {
@@ -296,8 +143,8 @@ uint32_t randomColor() {
 }
 
 void pixelsOff() {
-  for (uint16_t ii=0; ii < strip.numPixels(); ii++) {
-    strip.setPixelColor(ii, strip.Color(maxx, zero, zero));
+  for (uint8_t ii=0; ii < strip.numPixels(); ii++) {
+    strip.setPixelColor(ii, strip.Color(zero, zero, zero));
   }
   strip.show();
 }
